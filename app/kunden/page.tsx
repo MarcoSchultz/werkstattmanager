@@ -9,10 +9,15 @@ export default async function Page() {
 
   const { data: kunden, error } = await supabase
     .from("kunden")
-    .select("*");
-
-  console.log("KUNDEN ERROR:", error);
-  console.log("KUNDEN DATA:", kunden);
+    .select(`
+      id,
+      vorname,
+      nachname,
+      telefon,
+      anrede:anrede_id (
+        bezeichnung
+      )
+    `);
 
   if (error) {
     return <div>Fehler beim Laden der Kunden: {error.message}</div>;

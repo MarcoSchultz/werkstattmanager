@@ -3,11 +3,13 @@
 import { useState, useMemo } from "react";
 
 interface Kunde {
-  id: number;
-  anrede: string;
-  nachname: string;
+  id: string;
   vorname: string;
+  nachname: string;
   telefon: string;
+  anrede: {
+    bezeichnung: string | null;
+  } | null;
 }
 
 export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
@@ -51,16 +53,17 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
         <tbody>
           {filtered.map((k) => (
             <tr key={k.id} className="hover:bg-gray-50">
-              <td className="p-2 border">{k.anrede}</td>
+              <td className="p-2 border">
+                {k.anrede?.bezeichnung ?? "—"}
+              </td>
               <td className="p-2 border">{k.nachname}</td>
               <td className="p-2 border">{k.vorname}</td>
               <td className="p-2 border">{k.telefon}</td>
 
-              {/* Aktionen */}
               <td className="p-2 border text-center space-x-2">
                 <button
                   className="px-2 py-1 text-xs bg-blue-600 text-white rounded"
-                  onClick={() => console.log("Details / Bearbeiten:", k.id)}
+                  onClick={() => console.log("Bearbeiten:", k.id)}
                 >
                   Bearbeiten
                 </button>
