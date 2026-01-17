@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 interface Kunde {
   id: string;
@@ -14,7 +15,13 @@ interface Kunde {
 
 export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   const [search, setSearch] = useState("");
+  const [list, setList] = useState<Kunde[]>(kunden); // ← lokale Liste für Sofort-Update
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // Beim ersten Laden automatisch fokussieren
   useEffect(() => {
@@ -22,18 +29,36 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   }, []);
 
   const filtered = useMemo(() => {
-    return kunden
+    return list
       .filter((k) =>
         `${k.nachname} ${k.vorname}`
           .toLowerCase()
           .includes(search.toLowerCase())
       )
       .sort((a, b) => a.nachname.localeCompare(b.nachname));
-  }, [kunden, search]);
+  }, [list, search]);
 
   const clearSearch = () => {
     setSearch("");
     setTimeout(() => searchRef.current?.focus(), 0);
+  };
+
+  // ---------------------------------------------------------
+  // 🔥 KUNDE LÖSCHEN
+  // ---------------------------------------------------------
+  const deleteKunde = async (id: string) => {
+    const sicher = confirm("Soll dieser Kunde wirklich gelöscht werden?");
+    if (!sicher) return;
+
+    const { error } = await supabase.from("kunden").delete().eq("id", id);
+
+    if (error) {
+      alert("Fehler beim Löschen: " + error.message);
+      return;
+    }
+
+    // Sofort aus der Liste entfernen → kein Reload nötig
+    setList((prev) => prev.filter((k) => k.id !== id));
   };
 
   return (
@@ -102,7 +127,7 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
 
                 <button
                   className="px-2 py-1 text-xs bg-red-600 text-white rounded"
-                  onClick={() => console.log("Löschen:", k.id)}
+                  onClick={() => deleteKunde(k.id)}
                 >
                   Löschen
                 </button>
@@ -112,10 +137,7 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
 
           {filtered.length === 0 && (
             <tr>
-              <td
-                colSpan={6}
-                className="p-4 text-center text-gray-500"
-              >
+              <td colSpan={6} className="p-4 text-center text-gray-500">
                 Keine passenden Kunden gefunden
               </td>
             </tr>
