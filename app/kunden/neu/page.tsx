@@ -27,17 +27,17 @@ export default function NeuerKunde() {
     email: "",
   });
 
+  const [savedId, setSavedId] = useState<string | null>(null);
+
   // Anreden automatisch laden
   useEffect(() => {
     const loadAnreden = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("anrede")
         .select("id, bezeichnung")
         .order("bezeichnung", { ascending: true });
 
-      if (!error && data) {
-        setAnreden(data);
-      }
+      if (data) setAnreden(data);
     };
 
     loadAnreden();
@@ -49,31 +49,33 @@ export default function NeuerKunde() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const speichern = async () => {
-    const { data, error } = await supabase
-      .from("kunden")
-      .insert([form])
-      .select("id")
-      .single();
+ const speichern = async () => {
+  const { data, error } = await supabase
+    .from("kunden")
+    .insert([form])
+    .select("id")
+    .single();
 
-    if (error) {
-      alert("Fehler beim Speichern: " + error.message);
-      return;
-    }
+  if (error) {
+    alert("Fehler beim Speichern: " + error.message);
+    return;
+  }
 
-    const kundeId = data.id;
+  // Formular zurücksetzen → verhindert Browser-Warnung
+  setForm({
+    anrede_id: "",
+    vorname: "",
+    nachname: "",
+    strasse: "",
+    plz: "",
+    ort: "",
+    telefon: "",
+    email: "",
+  });
 
-    // Dialog anzeigen
-    const antwort = confirm(
-      "Kunde erfolgreich angelegt.\n\nMöchten Sie jetzt ein Fahrzeug erfassen?"
-    );
+  setSavedId(data.id); // zeigt die Message-Box an
+};
 
-    if (antwort) {
-      router.push(`/fahrzeuge/neu?kunde=${kundeId}`);
-    } else {
-      router.push("/kunden");
-    }
-  };
 
   return (
     <div className="p-6 max-w-2xl">
@@ -90,6 +92,7 @@ export default function NeuerKunde() {
             name="anrede_id"
             value={form.anrede_id}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded bg-white"
           >
             <option value="">Bitte wählen…</option>
@@ -109,6 +112,7 @@ export default function NeuerKunde() {
             name="vorname"
             value={form.vorname}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -120,6 +124,7 @@ export default function NeuerKunde() {
             name="nachname"
             value={form.nachname}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -131,6 +136,7 @@ export default function NeuerKunde() {
             name="strasse"
             value={form.strasse}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -142,6 +148,7 @@ export default function NeuerKunde() {
             name="plz"
             value={form.plz}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -153,6 +160,7 @@ export default function NeuerKunde() {
             name="ort"
             value={form.ort}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -164,6 +172,7 @@ export default function NeuerKunde() {
             name="telefon"
             value={form.telefon}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
@@ -175,17 +184,42 @@ export default function NeuerKunde() {
             name="email"
             value={form.email}
             onChange={handleChange}
+            autoComplete="off"
             className="w-full p-3 border rounded"
           />
         </div>
 
-        {/* Speichern */}
-        <button
-          onClick={speichern}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Speichern
-        </button>
+        {/* Speichern + MessageBox */}
+        <div className="flex items-center gap-4 mt-4">
+
+          <button
+            onClick={speichern}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Speichern
+          </button>
+
+          {savedId && (
+            <div className="p-3 border rounded bg-gray-100 shadow-sm flex items-center gap-3">
+              <span className="font-semibold">Fahrzeug erfassen?</span>
+
+              <button
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+                onClick={() => router.push(`/fahrzeuge/neu?kunde=${savedId}`)}
+              >
+                Ja
+              </button>
+
+              <button
+                className="px-3 py-1 bg-gray-600 text-white rounded text-sm"
+                onClick={() => router.push("/kunden")}
+              >
+                Nein
+              </button>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
