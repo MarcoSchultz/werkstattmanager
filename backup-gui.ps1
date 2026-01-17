@@ -35,8 +35,19 @@ $button.Add_Click({
         }
 
         $version = Get-Content $versionFile
+
+        # Versionsteile extrahieren
         $major, $minor, $patch = $version.Split(".")
-        $patch++
+
+        # In Integer umwandeln
+        $major = [int]$major
+        $minor = [int]$minor
+        $patch = [int]$patch
+
+        # Patch erhöhen
+        $patch = $patch + 1
+
+        # Neue Version zusammensetzen
         $newVersion = "$major.$minor.$patch"
         $newVersion | Out-File $versionFile
 
