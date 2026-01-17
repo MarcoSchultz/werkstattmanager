@@ -1,5 +1,8 @@
 Add-Type -AssemblyName PresentationFramework
 
+# --- Immer in den Ordner wechseln, in dem das Skript liegt ---
+Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+
 # --- GUI erstellen ---
 $window = New-Object System.Windows.Window
 $window.Title = "Werkstattmanager Backup"
