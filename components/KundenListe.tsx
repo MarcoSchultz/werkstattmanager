@@ -1,27 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface Kunde {
   id: number;
-  kundennummer: string;
-  vorname: string;
+  anrede: string;
   nachname: string;
+  vorname: string;
   telefon: string;
-  email: string;
-  fahrzeuge_count: number;
 }
 
 export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   const [search, setSearch] = useState("");
 
-  const filtered = kunden.filter((k) => {
-    const name = `${k.vorname} ${k.nachname}`.toLowerCase();
-    return name.includes(search.toLowerCase());
-  });
+  const filtered = useMemo(() => {
+    return kunden
+      .filter((k) =>
+        `${k.nachname} ${k.vorname}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      )
+      .sort((a, b) => a.nachname.localeCompare(b.nachname));
+  }, [kunden, search]);
 
   return (
     <div className="w-full">
+      {/* Suchfeld */}
       <div className="mb-3">
         <input
           type="text"
@@ -32,31 +36,40 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
         />
       </div>
 
+      {/* Tabelle */}
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-gray-100 text-left">
-            <th className="p-2 border">Kunden-Nr.</th>
-            <th className="p-2 border">Name</th>
+            <th className="p-2 border">Anrede</th>
+            <th className="p-2 border">Nachname</th>
+            <th className="p-2 border">Vorname</th>
             <th className="p-2 border">Telefon</th>
-            <th className="p-2 border">E-Mail</th>
-            <th className="p-2 border">Fahrzeuge</th>
-            <th className="p-2 border w-20">Aktionen</th>
+            <th className="p-2 border w-40 text-center">Aktionen</th>
           </tr>
         </thead>
 
         <tbody>
           {filtered.map((k) => (
             <tr key={k.id} className="hover:bg-gray-50">
-              <td className="p-2 border">{k.kundennummer}</td>
-              <td className="p-2 border">
-                {k.nachname}, {k.vorname}
-              </td>
+              <td className="p-2 border">{k.anrede}</td>
+              <td className="p-2 border">{k.nachname}</td>
+              <td className="p-2 border">{k.vorname}</td>
               <td className="p-2 border">{k.telefon}</td>
-              <td className="p-2 border">{k.email}</td>
-              <td className="p-2 border text-center">{k.fahrzeuge_count}</td>
-              <td className="p-2 border text-center">
-                <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
-                  Details
+
+              {/* Aktionen */}
+              <td className="p-2 border text-center space-x-2">
+                <button
+                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded"
+                  onClick={() => console.log("Details / Bearbeiten:", k.id)}
+                >
+                  Bearbeiten
+                </button>
+
+                <button
+                  className="px-2 py-1 text-xs bg-red-600 text-white rounded"
+                  onClick={() => console.log("Löschen:", k.id)}
+                >
+                  Löschen
                 </button>
               </td>
             </tr>
@@ -64,7 +77,7 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
 
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-4 text-center text-gray-500">
+              <td colSpan={5} className="p-4 text-center text-gray-500">
                 Keine passenden Kunden gefunden
               </td>
             </tr>
