@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 
 interface Kunde {
   id: string;
@@ -14,6 +14,12 @@ interface Kunde {
 
 export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   const [search, setSearch] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Beim ersten Laden automatisch fokussieren
+  useEffect(() => {
+    searchRef.current?.focus();
+  }, []);
 
   const filtered = useMemo(() => {
     return kunden
@@ -25,17 +31,33 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
       .sort((a, b) => a.nachname.localeCompare(b.nachname));
   }, [kunden, search]);
 
+  const clearSearch = () => {
+    setSearch("");
+    setTimeout(() => searchRef.current?.focus(), 0);
+  };
+
   return (
     <div className="w-full">
-      {/* Suchfeld */}
-      <div className="mb-3">
+      {/* Suchfeld mit Clear-Button */}
+      <div className="mb-3 relative w-64">
         <input
+          ref={searchRef}
           type="text"
           placeholder="Suche nach Name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-64 p-2 border rounded shadow-sm"
+          className="w-full p-2 pr-8 border rounded shadow-sm"
+          autoFocus
         />
+
+        {search.length > 0 && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Tabelle */}
@@ -90,7 +112,10 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
 
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-4 text-center text-gray-500">
+              <td
+                colSpan={6}
+                className="p-4 text-center text-gray-500"
+              >
                 Keine passenden Kunden gefunden
               </td>
             </tr>
