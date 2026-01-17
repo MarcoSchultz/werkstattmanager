@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 interface Kunde {
   id: string;
@@ -15,19 +16,22 @@ interface Kunde {
 
 export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   const [search, setSearch] = useState("");
-  const [list, setList] = useState<Kunde[]>(kunden); // ← lokale Liste für Sofort-Update
+  const [list, setList] = useState<Kunde[]>(kunden);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Beim ersten Laden automatisch fokussieren
+  // Suchfeld automatisch fokussieren
   useEffect(() => {
     searchRef.current?.focus();
   }, []);
 
+  // Gefilterte + sortierte Liste
   const filtered = useMemo(() => {
     return list
       .filter((k) =>
@@ -44,7 +48,7 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
   };
 
   // ---------------------------------------------------------
-  // 🔥 KUNDE LÖSCHEN
+  // 🔥 Kunde löschen
   // ---------------------------------------------------------
   const deleteKunde = async (id: string) => {
     const sicher = confirm("Soll dieser Kunde wirklich gelöscht werden?");
@@ -57,13 +61,13 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
       return;
     }
 
-    // Sofort aus der Liste entfernen → kein Reload nötig
+    // Sofort aus der Liste entfernen
     setList((prev) => prev.filter((k) => k.id !== id));
   };
 
   return (
     <div className="w-full">
-      {/* Suchfeld mit Clear-Button */}
+      {/* Suchfeld */}
       <div className="mb-3 relative w-64">
         <input
           ref={searchRef}
@@ -118,13 +122,15 @@ export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
 
               {/* Aktionen */}
               <td className="p-2 border text-center space-x-2">
+                {/* 🔵 Bearbeiten */}
                 <button
                   className="px-2 py-1 text-xs bg-blue-600 text-white rounded"
-                  onClick={() => console.log("Bearbeiten:", k.id)}
+                  onClick={() => router.push(`/kunden/${k.id}`)}
                 >
                   Bearbeiten
                 </button>
 
+                {/* 🔴 Löschen */}
                 <button
                   className="px-2 py-1 text-xs bg-red-600 text-white rounded"
                   onClick={() => deleteKunde(k.id)}
