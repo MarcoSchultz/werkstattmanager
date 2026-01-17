@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 export default function NeuerKunde() {
+  const router = useRouter();
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  const [anreden, setAnreden] = useState<
+    { id: string; bezeichnung: string | null }[]
+  >([]);
 
   const [form, setForm] = useState({
     anrede_id: "",
@@ -20,6 +27,22 @@ export default function NeuerKunde() {
     email: "",
   });
 
+  // Anreden automatisch laden
+  useEffect(() => {
+    const loadAnreden = async () => {
+      const { data, error } = await supabase
+        .from("anrede")
+        .select("id, bezeichnung")
+        .order("bezeichnung", { ascending: true });
+
+      if (!error && data) {
+        setAnreden(data);
+      }
+    };
+
+    loadAnreden();
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -27,11 +50,28 @@ export default function NeuerKunde() {
   };
 
   const speichern = async () => {
-    const { error } = await supabase.from("kunden").insert([form]);
+    const { data, error } = await supabase
+      .from("kunden")
+      .insert([form])
+      .select("id")
+      .single();
+
     if (error) {
       alert("Fehler beim Speichern: " + error.message);
+      return;
+    }
+
+    const kundeId = data.id;
+
+    // Dialog anzeigen
+    const antwort = confirm(
+      "Kunde erfolgreich angelegt.\n\nMöchten Sie jetzt ein Fahrzeug erfassen?"
+    );
+
+    if (antwort) {
+      router.push(`/fahrzeuge/neu?kunde=${kundeId}`);
     } else {
-      alert("Kunde erfolgreich angelegt");
+      router.push("/kunden");
     }
   };
 
@@ -41,7 +81,6 @@ export default function NeuerKunde() {
         Neuen Kunden anlegen
       </h1>
 
-      {/* Formular */}
       <div className="space-y-4">
 
         {/* Anrede */}
@@ -54,9 +93,12 @@ export default function NeuerKunde() {
             className="w-full p-3 border rounded bg-white"
           >
             <option value="">Bitte wählen…</option>
-            <option value="HERR_UUID">Herr</option>
-            <option value="FRAU_UUID">Frau</option>
-            <option value="DIVERS_UUID">Divers</option>
+
+            {anreden.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.bezeichnung}
+              </option>
+            ))}
           </select>
         </div>
 
