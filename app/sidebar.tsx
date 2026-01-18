@@ -1,45 +1,64 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 
 export default function Sidebar() {
-  const router = useRouter();
   const pathname = usePathname();
 
-  const navItem = (label: string, path: string) => {
-    const active = pathname.startsWith(path);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-    return (
-      <button
-        onClick={() => router.push(path)}
-        className={`w-full text-left px-4 py-2 rounded mb-1 ${
-          active
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 hover:bg-gray-300 text-black"
-        }`}
-      >
-        {label}
-      </button>
-    );
+  const nav = [
+    { href: "/dashboard", label: "Dashboard", icon: "📊" },
+    { href: "/kunden", label: "Kunden", icon: "👤" },
+    { href: "/fahrzeuge", label: "Fahrzeuge", icon: "🚗" },
+    { href: "/artikel", label: "Artikel", icon: "📦" },
+    { href: "/einstellungen", label: "Einstellungen", icon: "⚙️" },
+  ];
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
   };
 
   return (
-    <div className="w-64 h-screen bg-gray-100 p-4 border-r">
-      <h2 className="text-xl font-bold mb-4">Werkstattmanager</h2>
+    <div className="w-64 h-screen border-r bg-gray-50 p-4 flex flex-col">
+      <h1 className="text-xl font-bold mb-6">Werkstattmanager</h1>
 
-      {/* Hauptnavigation */}
-      {navItem("Dashboard", "/")}
-      {navItem("Kunden", "/kunden")}
-      {navItem("Neuer Kunde", "/kunden/neu")}
-      {navItem("Fahrzeuge", "/fahrzeuge")}
+      <nav className="flex flex-col gap-2">
+        {nav.map((item) => {
+          const active = pathname.startsWith(item.href);
 
-      {/* Verwaltung */}
-      <div className="mt-6 border-t pt-4">
-        <h3 className="text-sm font-semibold text-gray-600 mb-2">
-          Verwaltung
-        </h3>
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-2 rounded transition ${
+                active
+                  ? "bg-blue-600 text-white shadow"
+                  : "hover:bg-gray-200"
+              }`}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
-        {navItem("Einstellungen", "/einstellungen")}
+      <button
+        onClick={logout}
+        className="mt-6 px-4 py-2 bg-red-600 text-white rounded"
+      >
+        Logout
+      </button>
+
+      <div className="mt-auto text-xs text-gray-500">
+        © {new Date().getFullYear()} Werkstattmanager
       </div>
     </div>
   );

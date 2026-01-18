@@ -1,31 +1,19 @@
 import "./globals.css";
 import Sidebar from "./sidebar";
+import AuthWrapper from "./auth-wrapper";
 
 export const metadata = {
   title: "Werkstattmanager",
-  description: "Werkstattmanager Dashboard",
+  description: "Werkstattverwaltung für Fahrzeuge, Kunden und Reparaturen",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="de">
-      <body
-        style={{
-          display: "flex",
-          minHeight: "100vh",
-          margin: 0,
-          background: "#f9fafb",
-        }}
-      >
-        <Sidebar />
-
-        <main style={{ flex: 1, padding: "20px" }}>
+      <body className="flex">
+        <AuthWrapper>
           {children}
-        </main>
+        </AuthWrapper>
       </body>
     </html>
   );
