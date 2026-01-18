@@ -12,14 +12,9 @@ export default function Sidebar() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Navigation mit Unterpunkt für Kunden
   const nav = [
     { href: "/dashboard", label: "Dashboard", icon: "📊" },
-
-    // Kunden + Unterpunkt
     { href: "/kunden", label: "Kunden", icon: "👤" },
-    { href: "/kunden/new", label: "➕ Neuer Kunde", icon: "➕", sub: true },
-
     { href: "/fahrzeuge", label: "Fahrzeuge", icon: "🚗" },
     { href: "/artikel", label: "Artikel", icon: "📦" },
     { href: "/einstellungen", label: "Einstellungen", icon: "⚙️" },
@@ -46,7 +41,7 @@ export default function Sidebar() {
                 active
                   ? "bg-blue-600 text-white shadow"
                   : "hover:bg-gray-200"
-              } ${item.sub ? "ml-8 text-sm" : ""}`}
+              }`}
             >
               <span className="text-xl">{item.icon}</span>
               <span>{item.label}</span>
