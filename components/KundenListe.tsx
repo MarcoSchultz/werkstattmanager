@@ -40,7 +40,7 @@ export default function KundenListe({ kunden }) {
 
         {/* Neuer Kunde Button direkt rechts daneben */}
         <Link
-          href="/kunden/new"
+          href="/kunden/neu"
           className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 whitespace-nowrap"
         >
           ➕ Neuer Kunde
