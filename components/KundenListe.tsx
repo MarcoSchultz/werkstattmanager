@@ -1,150 +1,114 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
 
-interface Kunde {
-  id: string;
-  vorname: string;
-  nachname: string;
-  telefon: string;
-  anrede: {
-    bezeichnung: string | null;
-  } | null;
-}
-
-export default function KundenListe({ kunden }: { kunden: Kunde[] }) {
+export default function KundenListe({ kunden }) {
   const [search, setSearch] = useState("");
-  const [list, setList] = useState<Kunde[]>(kunden);
-  const searchRef = useRef<HTMLInputElement>(null);
 
-  const router = useRouter();
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  // Suchfeld automatisch fokussieren
-  useEffect(() => {
-    searchRef.current?.focus();
-  }, []);
-
-  // Gefilterte + sortierte Liste
-  const filtered = useMemo(() => {
-    return list
-      .filter((k) =>
-        `${k.nachname} ${k.vorname}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-      .sort((a, b) => a.nachname.localeCompare(b.nachname));
-  }, [list, search]);
-
-  const clearSearch = () => {
-    setSearch("");
-    setTimeout(() => searchRef.current?.focus(), 0);
-  };
-
-  // ---------------------------------------------------------
-  // 🔥 Kunde löschen
-  // ---------------------------------------------------------
-  const deleteKunde = async (id: string) => {
-    const sicher = confirm("Soll dieser Kunde wirklich gelöscht werden?");
-    if (!sicher) return;
-
-    const { error } = await supabase.from("kunden").delete().eq("id", id);
-
-    if (error) {
-      alert("Fehler beim Löschen: " + error.message);
-      return;
-    }
-
-    // Sofort aus der Liste entfernen
-    setList((prev) => prev.filter((k) => k.id !== id));
-  };
+  const filtered = kunden.filter((k) => {
+    const full = `${k.vorname} ${k.nachname}`.toLowerCase();
+    return full.includes(search.toLowerCase());
+  });
 
   return (
-    <div className="w-full">
-      {/* Suchfeld */}
-      <div className="mb-3 relative w-64">
-        <input
-          ref={searchRef}
-          type="text"
-          placeholder="Suche nach Name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full p-2 pr-8 border rounded shadow-sm"
-          autoFocus
-        />
+    <div>
+      {/* Kopfbereich: Suchfeld + Neuer Kunde Button */}
+      <div className="flex items-center gap-4 mb-4">
+        
+        {/* Suchfeld mit Clear-Button */}
+        <div className="relative" style={{ width: "250px" }}>
+          <input
+            type="text"
+            placeholder="Suchen…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 rounded w-full pr-8"
+          />
 
-        {search.length > 0 && (
-          <button
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
-          >
-            ✕
-          </button>
-        )}
+          {/* Clear-Button (X) */}
+          {search.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+            >
+              ✖
+            </button>
+          )}
+        </div>
+
+        {/* Neuer Kunde Button direkt rechts daneben */}
+        <Link
+          href="/kunden/new"
+          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 whitespace-nowrap"
+        >
+          ➕ Neuer Kunde
+        </Link>
       </div>
 
       {/* Tabelle */}
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-2 border">Anrede</th>
-            <th className="p-2 border">Nachname</th>
-            <th className="p-2 border">Vorname</th>
-            <th className="p-2 border">Telefon</th>
-            <th className="p-2 border w-24 text-center">Details</th>
-            <th className="p-2 border w-40 text-center">Aktionen</th>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Anrede</th>
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Telefon</th>
+            <th className="border p-2">Aktion</th>
           </tr>
         </thead>
 
         <tbody>
           {filtered.map((k) => (
-            <tr key={k.id} className="hover:bg-gray-50">
-              <td className="p-2 border">{k.anrede?.bezeichnung ?? "—"}</td>
-              <td className="p-2 border">{k.nachname}</td>
-              <td className="p-2 border">{k.vorname}</td>
-              <td className="p-2 border">{k.telefon}</td>
+            <tr key={k.id}>
+              <td className="border p-2">{k.anrede?.bezeichnung}</td>
 
-              {/* Details */}
-              <td className="p-2 border text-center">
-                <button
-                  className="px-2 py-1 text-xs bg-gray-700 text-white rounded"
-                  onClick={() => console.log("Details:", k.id)}
-                >
-                  Details
-                </button>
+              <td className="border p-2">
+                {k.vorname} {k.nachname}
               </td>
 
-              {/* Aktionen */}
-              <td className="p-2 border text-center space-x-2">
-                {/* 🔵 Bearbeiten */}
-                <button
-                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded"
-                  onClick={() => router.push(`/kunden/${k.id}`)}
-                >
-                  Bearbeiten
-                </button>
+              <td className="border p-2">{k.telefon}</td>
 
-                {/* 🔴 Löschen */}
-                <button
-                  className="px-2 py-1 text-xs bg-red-600 text-white rounded"
-                  onClick={() => deleteKunde(k.id)}
-                >
-                  Löschen
-                </button>
+              <td className="border p-2">
+                <div className="flex gap-3">
+                  <Link
+                    href={`/kunden/${k.id}`}
+                    className="text-blue-600 underline"
+                  >
+                    Öffnen
+                  </Link>
+
+                  <Link
+                    href={`/kunden/${k.id}/edit`}
+                    className="text-green-600 underline"
+                  >
+                    Bearbeiten
+                  </Link>
+
+                  <button
+                    type="button"
+                    className="text-red-600 underline"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Kunde ${k.vorname} ${k.nachname} wirklich löschen?`
+                        )
+                      ) {
+                        // TODO: echte Löschlogik einbauen
+                      }
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
 
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-4 text-center text-gray-500">
-                Keine passenden Kunden gefunden
+              <td colSpan={4} className="text-center p-4 text-gray-500">
+                Keine Kunden gefunden.
               </td>
             </tr>
           )}
