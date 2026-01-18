@@ -1,51 +1,46 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
 
-  const linkStyle = (path: string) => ({
-    color: "white",
-    textDecoration: "none",
-    padding: "8px 12px",
-    borderRadius: "6px",
-    background: pathname === path ? "#374151" : "transparent",
-    display: "block",
-  });
+  const navItem = (label: string, path: string) => {
+    const active = pathname.startsWith(path);
+
+    return (
+      <button
+        onClick={() => router.push(path)}
+        className={`w-full text-left px-4 py-2 rounded mb-1 ${
+          active
+            ? "bg-blue-600 text-white"
+            : "bg-gray-200 hover:bg-gray-300 text-black"
+        }`}
+      >
+        {label}
+      </button>
+    );
+  };
 
   return (
-    <aside
-      style={{
-        width: "240px",
-        background: "#1f2937",
-        color: "white",
-        padding: "24px",
-        borderRight: "1px solid #111827",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-      }}
-    >
-      <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "600" }}>
-        Werkstattmanager
-      </h2>
+    <div className="w-64 h-screen bg-gray-100 p-4 border-r">
+      <h2 className="text-xl font-bold mb-4">Werkstattmanager</h2>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        <a href="/kunden" style={linkStyle("/kunden")}>
-          Kundenliste
-        </a>
+      {/* Hauptnavigation */}
+      {navItem("Dashboard", "/")}
+      {navItem("Kunden", "/kunden")}
+      {navItem("Neuer Kunde", "/kunden/neu")}
+      {navItem("Fahrzeuge", "/fahrzeuge")}
 
-        <a href="/kunden/neu" style={linkStyle("/kunden/neu")}>
-          Neuer Kunde
-        </a>
+      {/* Verwaltung */}
+      <div className="mt-6 border-t pt-4">
+        <h3 className="text-sm font-semibold text-gray-600 mb-2">
+          Verwaltung
+        </h3>
 
-        <hr style={{ borderColor: "#4b5563" }} />
-
-        <span style={{ opacity: 0.6 }}>Aufträge (bald)</span>
-        <span style={{ opacity: 0.6 }}>Fahrzeuge (bald)</span>
-        <span style={{ opacity: 0.6 }}>Einstellungen</span>
-      </nav>
-    </aside>
+        {navItem("Einstellungen", "/einstellungen")}
+      </div>
+    </div>
   );
 }
