@@ -1,5 +1,4 @@
 import "./globals.css";
-import Sidebar from "./sidebar";
 import AuthWrapper from "./auth-wrapper";
 
 export const metadata = {
